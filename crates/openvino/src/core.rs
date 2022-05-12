@@ -90,16 +90,26 @@ impl Core {
         // Because `ie_core_load_network` does not allow a null pointer for the configuration, we
         // construct an empty configuration struct to pass. At some point, it could be good to allow
         // users to pass a map to this function that gets converted to an `ie_config_t` (TODO).
-        let empty_config = ie_config_t {
-            name: std::ptr::null(),
-            value: std::ptr::null(),
+
+        println!("BJONES creating config...");
+
+        let mut config2 = ie_config_t {
+            name: cstr!("CPU_THREADS_NUM"),
+            value: cstr!("1"),
             next: std::ptr::null_mut(),
         };
+
+        let config1 = ie_config_t {
+            name: cstr!("CPU_THROUGHPUT_STREAMS"),
+            value: cstr!("0"),
+            next: &mut config2 as *mut ie_config_t,
+        };
+
         try_unsafe!(ie_core_load_network(
             self.instance,
             network.instance,
             cstr!(device),
-            &empty_config as *const _,
+            &config1 as *const _,
             &mut instance as *mut *mut _
         ))?;
         Ok(ExecutableNetwork { instance })
